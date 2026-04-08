@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#534AB7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Bupropion">
+<link rel="apple-touch-icon" id="apple-icon">
+<link rel="manifest" id="pwa-manifest">
+<title>Bupropion Tracker</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f5f5f3; --bg3: #eeece8;
+    --text: #1a1a18; --text2: #6b6b67; --text3: #9b9b96;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --purple-bg: #EEEDFE; --purple: #534AB7; --purple-dark: #3C3489;
+    --green: #1D9E75; --green-bg: #E1F5EE; --green-dark: #0F6E56;
+    --red: #E24B4A; --red-bg: #FCEBEB; --red-dark: #A32D2D;
+    --radius: 12px; --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a; --bg2: #282826; --bg3: #333330;
+      --text: #f0ede8; --text2: #a0a09a; --text3: #6e6e68;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+      --purple-bg: #26215C; --purple: #AFA9EC; --purple-dark: #CECBF6;
+      --green: #1D9E75; --green-bg: #04342C; --green-dark: #9FE1CB;
+      --red: #E24B4A; --red-bg: #501313; --red-dark: #F7C1C1;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
+  .wrap { max-width: 430px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+  .setup { display: flex; flex-direction: column; gap: 1.25rem; }
+  .setup h1 { font-size: 22px; font-weight: 500; }
+  .setup p { font-size: 14px; color: var(--text2); line-height: 1.6; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 13px; color: var(--text2); }
+  .field input { background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 15px; color: var(--text); outline: none; width: 100%; }
+  .field input:focus { border-color: var(--purple); }
+  .btn-primary { background: var(--purple); color: #fff; border: none; border-radius: var(--radius-sm); padding: 12px; font-size: 15px; font-weight: 500; cursor: pointer; width: 100%; }
+  .header-card { background: var(--bg); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 1.25rem; margin-bottom: 1rem; }
+  .header-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .med-name { font-size: 22px; font-weight: 500; }
+  .med-meta { font-size: 13px; color: var(--text2); }
+  .header-mid { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center; }
+  .day-pill { background: var(--purple-bg); border-radius: 20px; padding: 5px 14px; display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+  .day-num { font-size: 22px; font-weight: 500; color: var(--purple-dark); }
+  .day-lbl { font-size: 12px; color: var(--purple); }
+  .bars { display: flex; flex-direction: column; gap: 7px; }
+  .bar-row { display: flex; flex-direction: column; gap: 2px; }
+  .bar-hint { font-size: 11px; color: var(--text3); }
+  .bar-wrap { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+  .bar-fill.purple { background: var(--purple); }
+  .bar-fill.teal { background: var(--green); }
+  .section-lbl { font-size: 11px; font-weight: 500; color: var(--text3); letter-spacing: 0.07em; text-transform: uppercase; margin: 0 0 0.75rem; }
+  .tl { position: relative; padding-left: 32px; }
+  .tl-line { position: absolute; left: 15px; top: 11px; bottom: 11px; width: 1px; background: var(--border); }
+  .ms { position: relative; padding-bottom: 1.1rem; }
+  .ms:last-child { padding-bottom: 0; }
+  .dot { position: absolute; left: -25px; top: 3px; width: 16px; height: 16px; border-radius: 50%; border: 2px solid; transition: background 0.3s, border-color 0.3s; }
+  .dot.done { background: var(--green); border-color: var(--green); }
+  .dot.future { background: var(--bg); border-color: var(--border2); }
+  .dot.green { background: var(--green); border-color: var(--green); }
+  .dot.red { background: var(--red); border-color: var(--red); }
+  .ms-title { font-size: 14px; font-weight: 500; margin: 0 0 1px; }
+  .ms-date { font-size: 12px; color: var(--text2); margin: 0 0 1px; }
+  .ms-note { font-size: 12px; color: var(--text3); margin: 0; }
+  .opts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+  .opt { font-size: 12px; background: var(--bg2); border: 0.5px solid var(--border2); border-radius: 4px; padding: 4px 10px; color: var(--text2); cursor: pointer; transition: all 0.15s; }
+  .opt.sel-green { background: var(--green-bg); border-color: var(--green); color: var(--green-dark); }
+  .opt.sel-red { background: var(--red-bg); border-color: var(--red); color: var(--red-dark); }
+  .arzt-hint { margin-top: 6px; font-size: 12px; color: var(--red-dark); display: none; }
+  .reset-btn { margin-top: 2rem; text-align: center; }
+  .reset-btn button { font-size: 12px; color: var(--text3); background: none; border: none; cursor: pointer; text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+var KEY = 'bupropion_v1';
+
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch { return null; } }
+function save(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
+function fmt(d) { return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }); }
+function fmtS(d) { return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }); }
+function addD(d, n) { var r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function addW(d, w) { return addD(d, w * 7); }
+function addM(d, m) { var r = new Date(d); r.setMonth(r.getMonth() + m); return r; }
+function diff(a, b) { return Math.floor((b - a) / 86400000); }
+function pct(v, max) { return Math.min(100, Math.max(0, Math.round(v / max * 100))); }
+function isNeg(c) { return c === 'neg1' || c === 'neg2'; }
+function isPos(c) { return c === 'pos1' || c === 'pos2'; }
+
+function buildIcon() {
+  var c = document.createElement('canvas');
+  c.width = 192; c.height = 192;
+  var ctx = c.getContext('2d');
+  var r = 42;
+  ctx.beginPath();
+  ctx.moveTo(r,0); ctx.lineTo(192-r,0); ctx.quadraticCurveTo(192,0,192,r);
+  ctx.lineTo(192,192-r); ctx.quadraticCurveTo(192,192,192-r,192);
+  ctx.lineTo(r,192); ctx.quadraticCurveTo(0,192,0,192-r);
+  ctx.lineTo(0,r); ctx.quadraticCurveTo(0,0,r,0);
+  ctx.closePath(); ctx.fillStyle='#534AB7'; ctx.fill();
+  var px=44,py=74,pw=104,ph=44,pr=22;
+  ctx.beginPath();
+  ctx.moveTo(px+pr,py); ctx.lineTo(px+pw-pr,py);
+  ctx.quadraticCurveTo(px+pw,py,px+pw,py+pr);
+  ctx.lineTo(px+pw,py+ph-pr); ctx.quadraticCurveTo(px+pw,py+ph,px+pw-pr,py+ph);
+  ctx.lineTo(px+pr,py+ph); ctx.quadraticCurveTo(px,py+ph,px,py+ph-pr);
+  ctx.lineTo(px,py+pr); ctx.quadraticCurveTo(px,py,px+pr,py);
+  ctx.closePath(); ctx.fillStyle='white'; ctx.fill();
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(px+pr,py); ctx.lineTo(px+pw/2,py);
+  ctx.lineTo(px+pw/2,py+ph); ctx.lineTo(px+pr,py+ph);
+  ctx.quadraticCurveTo(px,py+ph,px,py+ph-pr);
+  ctx.lineTo(px,py+pr); ctx.quadraticCurveTo(px,py,px+pr,py);
+  ctx.closePath(); ctx.fillStyle='rgba(255,255,255,0.38)'; ctx.fill();
+  ctx.restore();
+  ctx.beginPath(); ctx.moveTo(96,py); ctx.lineTo(96,py+ph);
+  ctx.strokeStyle='#534AB7'; ctx.lineWidth=5; ctx.stroke();
+  return c.toDataURL('image/png');
+}
+
+function initPWA() {
+  var png = buildIcon();
+  document.getElementById('apple-icon').href = png;
+  var manifest = {
+    name: 'Bupropion Tracker', short_name: 'Bupropion',
+    start_url: location.href, display: 'standalone',
+    background_color: '#534AB7', theme_color: '#534AB7',
+    icons: [{ src: png, sizes: '192x192', type: 'image/png' }]
+  };
+  var blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+  document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+}
+
+function renderSetup() {
+  var today = new Date().toISOString().slice(0,10);
+  document.getElementById('app').innerHTML =
+    '<div class="setup">' +
+    '<h1>Bupropion Tracker</h1>' +
+    '<p>Gib dein Medikament und Startdatum ein. Alle Meilensteine werden automatisch berechnet und lokal auf deinem Gerät gespeichert.</p>' +
+    '<div class="field"><label>Medikament</label><input id="med" value="Bupropion"></div>' +
+    '<div class="field"><label>Dosis (mg)</label><input id="dose" type="number" value="150"></div>' +
+    '<div class="field"><label>Startdatum</label><input id="sd" type="date" value="' + today + '"></div>' +
+    '<button class="btn-primary" onclick="window.doStart()">Los geht\'s</button>' +
+    '</div>';
+}
+
+window.doStart = function() {
+  var med = document.getElementById('med').value.trim() || 'Bupropion';
+  var dose = parseInt(document.getElementById('dose').value) || 150;
+  var sd = document.getElementById('sd').value;
+  if (!sd) { alert('Bitte ein Startdatum eingeben.'); return; }
+  var data = { med: med, dose: dose, start: sd, check: null };
+  save(data); renderMain(data);
+};
+
+window.doCheck = function(val) {
+  var d = load(); d.check = val; save(d); renderMain(d);
+};
+
+window.doReset = function() {
+  if (confirm('Alle Daten löschen und neu starten?')) {
+    localStorage.removeItem(KEY); renderSetup();
+  }
+};
+
+function renderMain(data) {
+  var start = new Date(data.start + 'T00:00:00');
+  var today = new Date(); today.setHours(0,0,0,0);
+  var days = diff(start, today);
+  var m = {
+    wirkung:  addD(start, 14),
+    check:    addW(start, 4),
+    spiegel:  addW(start, 4),
+    koerperA: addW(start, 6),
+    koerperB: addW(start, 8),
+    stabilA:  addW(start, 10),
+    stabilB:  addW(start, 14),
+    end:      addM(start, 9)
+  };
+  var pW = pct(days, 56);
+  var pG = pct(days, 270);
+  function done(d) { return today >= d; }
+  function dc(d) { return done(d) ? 'done' : 'future'; }
+  var checkDot = done(m.check) ? (isPos(data.check) ? 'green' : isNeg(data.check) ? 'red' : 'future') : 'future';
+
+  var checkHtml = '';
+  if (done(m.check)) {
+    var c = data.check;
+    checkHtml =
+      '<div class="opts">' +
+      (!c || c==='pos1' ? '<span class="opt' + (c==='pos1'?' sel-green':'') + '" onclick="window.doCheck(\'pos1\')">Ja, spürbar</span>' : '') +
+      (!c || c==='pos2' ? '<span class="opt' + (c==='pos2'?' sel-green':'') + '" onclick="window.doCheck(\'pos2\')">Etwas</span>' : '') +
+      (!c || c==='neg1' ? '<span class="opt' + (c==='neg1'?' sel-red':'') + '" onclick="window.doCheck(\'neg1\')">Noch nichts</span>' : '') +
+      (!c || c==='neg2' ? '<span class="opt' + (c==='neg2'?' sel-red':'') + '" onclick="window.doCheck(\'neg2\')">Schlechter</span>' : '') +
+      '</div>' +
+      '<p class="arzt-hint" style="display:' + (isNeg(c)?'block':'none') + '">Arzttermin planen – Dosiserhöhung auf 300 mg besprechen.</p>';
+  } else {
+    checkHtml = '<p class="ms-note" style="margin-top:3px">Verfügbar ab ' + fmtS(m.check) + '</p>';
+  }
+
+  document.getElementById('app').innerHTML =
+    '<div class="header-card" onclick="window.open(\'https://www.gelbe-liste.de/wirkstoffe/Bupropion_47308\',\'_blank\')" style="cursor:pointer">' +
+      '<div class="header-top">' +
+        '<span class="med-name">' + data.med + '</span>' +
+        '<span class="med-meta">' + data.dose + ' mg · seit ' + fmtS(start) + '</span>' +
+      '</div>' +
+      '<div class="header-mid">' +
+        '<div class="day-pill"><span class="day-num">' + Math.max(0,days) + '</span><span class="day-lbl">Tage</span></div>' +
+        '<div class="bars">' +
+          '<div class="bar-row"><span class="bar-hint">bis volle Wirkung · Woche 4–8</span><div class="bar-wrap"><div class="bar-fill purple" style="width:' + pW + '%"></div></div></div>' +
+          '<div class="bar-row"><span class="bar-hint">Gesamtdauer · 9 Monate</span><div class="bar-wrap"><div class="bar-fill teal" style="width:' + pG + '%"></div></div></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<p class="section-lbl">Verlauf</p>' +
+    '<div class="tl"><div class="tl-line"></div>' +
+      ms('done', 'Gestartet', fmt(start), '') +
+      ms(dc(m.wirkung), 'Erster Wirkungseintritt', 'ab ' + fmtS(m.wirkung) + ' · Tag 14', 'Frühester möglicher Zeitpunkt laut Fachinformation') +
+      '<div class="ms"><div class="dot ' + checkDot + '"></div><p class="ms-title">4-Wochen-Check</p><p class="ms-date">' + fmtS(m.check) + ' · Woche 4</p><p class="ms-note">Erste Zeichen spürbar?</p>' + checkHtml + '</div>' +
+      ms(dc(m.spiegel), 'Spiegel aufgebaut', 'ca. ' + fmtS(m.spiegel) + ' · Woche 4', 'Steady State der Konzentration im Blut') +
+      ms(dc(m.koerperA), 'Körper vollständig gewöhnt', 'ca. ' + fmtS(m.koerperA) + '–' + fmtS(m.koerperB) + ' · Woche 6–8', 'Volle therapeutische Wirkung erwartet') +
+      ms(dc(m.stabilA), 'Stabile Wirkung', 'ca. ' + fmtS(m.stabilA) + '–' + fmtS(m.stabilB) + ' · Woche 10–14', 'Laut Erfahrungsberichten stabiler Effekt ab hier') +
+      ms(dc(m.end), 'Behandlung abgeschlossen', 'ca. ' + fmtS(m.end) + ' · nach 9 Monaten', 'Absetzen nur in Absprache mit dem Arzt') +
+    '</div>' +
+    '<div class="reset-btn"><button onclick="window.doReset()">Neu einrichten</button></div>';
+}
+
+function ms(dot, title, date, note) {
+  return '<div class="ms"><div class="dot ' + dot + '"></div>' +
+    '<p class="ms-title">' + title + '</p>' +
+    '<p class="ms-date">' + date + '</p>' +
+    (note ? '<p class="ms-note">' + note + '</p>' : '') +
+    '</div>';
+}
+
+initPWA();
+var d = load();
+if (d && d.start) renderMain(d); else renderSetup();
+</script>
+</body>
+</html>
