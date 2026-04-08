@@ -5,10 +5,7 @@ Personal medication tracker for Bupropion. Tracks start date, milestones and pro
 ## Install on Android
 
 1. Open Chrome on your Android device
-2. Navigate to the GitHub Pages URL:
-   ```
-   [https://ramsterhad.github.io/bupropion-tracker/index.html](https://ramsterhad.github.io/bupropion_tracker/)
-   ```
+2. Navigate to the GitHub Pages URL: [https://ramsterhad.github.io/bupropion-tracker/index.html](https://ramsterhad.github.io/bupropion_tracker/)
 3. Tap the three-dot menu (⋮) in the top right
 4. Tap **"Install app"**
 5. The app will appear on your home screen and app drawer
